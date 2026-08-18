@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Till Payday</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f3ee;
+  color: #111;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.tagline {
+  color: #777;
+  font-size: 18px;
+  margin-top: 8px;
+}
+
+.version {
+  color: #777;
+}
+
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 28px;
+  padding: 26px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.hero {
+  text-align: center;
+}
+
+.label {
+  color: #777;
+  font-weight: bold;
+  letter-spacing: 2px;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.big-money {
+  font-size: 64px;
+  font-weight: 800;
+  margin: 10px 0;
+}
+
+.subtext {
+  color: #777;
+  font-size: 18px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.stat {
+  background: #faf9f6;
+  border: 1px solid #ddd;
+  border-radius: 22px;
+  padding: 20px;
+}
+
+.stat-title {
+  color: #666;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  font-weight: bold;
+}
+
+.stat-value {
+  font-size: 30px;
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.field label {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 9px;
+}
+
+input, select {
+  width: 100%;
+  padding: 18px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-size: 20px;
+  background: white;
+  color: #111;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 20px;
+  padding: 18px;
+  font-size: 20px;
+  font-weight: bold;
+  background: #111;
+  color: white;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.bill-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 56px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.bill-list {
+  margin-top: 16px;
+}
+
+.bill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #faf9f6;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.bill-info {
+  font-size: 17px;
+}
+
+.remove {
+  width: auto;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  background: #eee;
+  color: #111;
+}
+
+.result {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #faf9f6;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.small {
+  color: #777;
+  font-size: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>Till Payday</h1>
+    <div class="tagline">Money without the bollocks.</div>
+  </div>
+  <div class="version">v0.3</div>
+</header>
+
+<div class="card hero">
+  <div class="label">Safe to spend today</div>
+  <div class="big-money" id="safeToday">£0.00</div>
+  <div class="subtext" id="summaryText">Enter your money and payday below.</div>
+</div>
+
+<div class="card">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-title">MONEY LEFT</div>
+      <div class="stat-value" id="moneyLeft">£0.00</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">BILLS DUE</div>
+      <div class="stat-value" id="billsDue">£0.00</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">SPENDABLE</div>
+      <div class="stat-value" id="spendable">£0.00</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">DAYS LEFT</div>
+      <div class="stat-value" id="daysLeft">0</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+
+  <div class="field">
+    <label>Money you've got right now</label>
+    <input type="number" id="moneyInput" step="0.01" placeholder="200.00">
+  </div>
+
+  <div class="field">
+    <label>Next payday</label>
+    <input type="date" id="paydayInput">
+  </div>
+
+  <div class="field">
+    <label>Voice</label>
+    <select id="voiceInput">
+      <option value="Normal">Normal</option>
+      <option value="Yorkshire">Yorkshire</option>
+      <option value="Straight">Straight talking</option>
+    </select>
+  </div>
+
+  <button onclick="updateMoney()">Update my money</button>
+</div>
+
+<div class="card">
+  <div class="section-title">BILLS BEFORE PAYDAY</div>
+
+  <div id="noBills" class="subtext">No bills added yet.</div>
+
+  <div class="bill-row">
+    <input type="text" id="billName" placeholder="e.g. Phone">
+    <input type="number" id="billAmount" placeholder="14">
+    <button onclick="addBill()">+</button>
+  </div>
+
+  <div class="bill-list" id="billList"></div>
+</div>
+
+<div class="card">
+  <div class="section-title">CAN I AFFORD IT?</div>
+
+  <div class="field">
+    <label>How much is it?</label>
+    <input type="number" id="purchaseAmount" step="0.01" placeholder="50.00">
+  </div>
+
+  <button onclick="checkPurchase()">Check it</button>
+
+  <div id="purchaseResult" class="result" style="display:none;"></div>
+</div>
+
+<script>
+
+let bills = [];
+
+function money(value) {
+  return "£" + Number(value || 0).toFixed(2);
+}
+
+function getDaysLeft() {
+  const paydayValue = document.getElementById("paydayInput").value;
+
+  if (!paydayValue) return 0;
+
+  const now = new Date();
+  now.setHours(0,0,0,0);
+
+  const payday = new Date(paydayValue + "T00:00:00");
+
+  const difference = payday - now;
+
+  return Math.max(0, Math.ceil(difference / 86400000));
+}
+
+function getTotalBills() {
+  return bills.reduce((total, bill) => total + Number(bill.amount), 0);
+}
+
+function calculate() {
+
+  const cash = Number(document.getElementById("moneyInput").value) || 0;
+
+  const billsTotal = getTotalBills();
+
+  const available = Math.max(0, cash - billsTotal);
+
+  const days = getDaysLeft();
+
+  const daily = days > 0 ? available / days : available;
+
+  document.getElementById("moneyLeft").textContent = money(cash);
+
+  document.getElementById("billsDue").textContent = money(billsTotal);
+
+  document.getElementById("spendable").textContent = money(available);
+
+  document.getElementById("daysLeft").textContent = days;
+
+  document.getElementById("safeToday").textContent = money(daily);
+
+  if (days > 0) {
+    document.getElementById("summaryText").textContent =
+      money(available) + " available over " + days + " days until payday.";
+  } else {
+    document.getElementById("summaryText").textContent =
+      money(available) + " available.";
+  }
+}
+
+function updateMoney() {
+  saveEverything();
+  calculate();
+}
+
+function addBill() {
+
+  const nameInput = document.getElementById("billName");
+  const amountInput = document.getElementById("billAmount");
+
+  const name = nameInput.value.trim();
+  const amount = Number(amountInput.value);
+
+  if (!name || !amount || amount <= 0) {
+    return;
+  }
+
+  bills.push({
+    id: Date.now(),
+    name: name,
+    amount: amount
+  });
+
+  nameInput.value = "";
+  amountInput.value = "";
+
+  renderBills();
+  saveEverything();
+  calculate();
+}
+
+function removeBill(id) {
+  bills = bills.filter(bill => bill.id !== id);
+
+  renderBills();
+  saveEverything();
+  calculate();
+}
+
+function renderBills() {
+
+  const list = document.getElementById("billList");
+  const noBills = document.getElementById("noBills");
+
+  list.innerHTML = "";
+
+  if (bills.length === 0) {
+    noBills.style.display = "block";
+    return;
+  }
+
+  noBills.style.display = "none";
+
+  bills.forEach(bill => {
+
+    const item = document.createElement("div");
+
+    item.className = "bill-item";
+
+    item.innerHTML =
+      '<div class="bill-info"><strong>' +
+      escapeHtml(bill.name) +
+      '</strong><br><span class="small">' +
+      money(bill.amount) +
+      '</span></div>' +
+      '<button class="remove" onclick="removeBill(' +
+      bill.id +
+      ')">Remove</button>';
+
+    list.appendChild(item);
+  });
+}
+
+function checkPurchase() {
+
+  const purchase =
+    Number(document.getElementById("purchaseAmount").value) || 0;
+
+  const cash =
+    Number(document.getElementById("moneyInput").value) || 0;
+
+  const billsTotal = getTotalBills();
+
+  const available = Math.max(0, cash - billsTotal);
+
+  const remaining = available - purchase;
+
+  const days = getDaysLeft();
+
+  const dailyAfter =
+    days > 0 ? Math.max(0, remaining) / days : Math.max(0, remaining);
+
+  const result = document.getElementById("purchaseResult");
+
+  result.style.display = "block";
+
+  const voice = document.getElementById("voiceInput").value;
+
+  if (purchase <= 0) {
+
+    result.textContent = "Stick an amount in first.";
+
+  } else if (remaining < 0) {
+
+    if (voice === "Yorkshire") {
+      result.innerHTML =
+        "😬 Nah mate. That'd leave you <strong>" +
+        money(Math.abs(remaining)) +
+        " short</strong> before payday.";
+    } else {
+      result.innerHTML =
+        "😬 Probably not. That would leave you <strong>" +
+        money(Math.abs(remaining)) +
+        " short</strong> before payday.";
+    }
+
+  } else {
+
+    if (voice === "Yorkshire") {
+      result.innerHTML =
+        "👍 Aye, you can. You'd have <strong>" +
+        money(remaining) +
+        "</strong> left — about <strong>" +
+        money(dailyAfter) +
+        " a day</strong> until payday.";
+    } else {
+      result.innerHTML =
+        "👍 Yep. You'd have <strong>" +
+        money(remaining) +
+        "</strong> left — about <strong>" +
+        money(dailyAfter) +
+        " a day</strong> until payday.";
+    }
+  }
+}
+
+function saveEverything() {
+
+  const data = {
+    money: document.getElementById("moneyInput").value,
+    payday: document.getElementById("paydayInput").value,
+    voice: document.getElementById("voiceInput").value,
+    bills: bills
+  };
+
+  localStorage.setItem("tillPaydayData", JSON.stringify(data));
+}
+
+function loadEverything() {
+
+  const saved = localStorage.getItem("tillPaydayData");
+
+  if (!saved) return;
+
+  try {
+
+    const data = JSON.parse(saved);
+
+    document.getElementById("moneyInput").value =
+      data.money || "";
+
+    document.getElementById("paydayInput").value =
+      data.payday || "";
+
+    document.getElementById("voiceInput").value =
+      data.voice || "Normal";
+
+    bills = Array.isArray(data.bills) ? data.bills : [];
+
+  } catch (error) {
+    console.log("Could not load saved data.");
+  }
+}
+
+function escapeHtml(text) {
+
+  const div = document.createElement("div");
+
+  div.textContent = text;
+
+  return div.innerHTML;
+}
+
+document.getElementById("moneyInput").addEventListener("input", saveEverything);
+document.getElementById("paydayInput").addEventListener("change", function() {
+  saveEverything();
+  calculate();
+});
+document.getElementById("voiceInput").addEventListener("change", saveEverything);
+
+loadEverything();
+renderBills();
+calculate();
+
+</script>
+
+</body>
+</html>
