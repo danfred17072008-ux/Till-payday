@@ -40,7 +40,14 @@ jobs:
           path: signing
 
       - name: Build signed Play Store AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd TillPayday_Android_v0_2
-          gradle bundleRelease \
-            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/signing/till
+          gradle bundleRelease "-Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing/tillpayday-upload.jks" "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" "-Pandroid.injected.signing.key.alias=tillpayday" "-Pandroid.injected.signing.key.password=$KEYSTORE_PASSWORD"
+
+      - name: Upload signed AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TillPayday-PlayStore-Signed-AAB
+          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/*.aab
