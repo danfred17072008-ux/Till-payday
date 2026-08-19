@@ -31,13 +31,16 @@ jobs:
         with:
           gradle-version: '8.13'
 
-      - name: Build Play Store AAB
+      - name: Download signing key
+        uses: actions/download-artifact@v4
+        with:
+          name: TillPayday-Signing-Key
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 37671d3
+          path: signing
+
+      - name: Build signed Play Store AAB
         run: |
           cd TillPayday_Android_v0_2
-          gradle bundleRelease
-
-      - name: Upload Play Store AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: TillPayday-PlayStore-AAB
-          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/*.aab
+          gradle bundleRelease \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/signing/till
