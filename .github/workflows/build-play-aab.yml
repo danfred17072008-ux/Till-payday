@@ -36,7 +36,7 @@ jobs:
         with:
           name: TillPayday-Signing-Key
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 37671d3
+          run-id: 32298731672
           path: signing
 
       - name: Build signed Play Store AAB
