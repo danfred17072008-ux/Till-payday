@@ -26,46 +26,53 @@ jobs:
       - name: Unzip Till Payday
         run: unzip TillPayday_Android_v0_2_PlayReady.zip
 
+      - name: Set correct Play Store package name
+        run: |
+          cd TillPayday_Android_v0_2_PlayReady
+          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
+          sed -i "s/applicationId '[^']*'/applicationId 'com.danfredtaylor.tillpayday'/" app/build.gradle
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
 
-      - name: Download signing key
-        uses: actions/download-artifact@v4
-        with:
-          name: TillPayday-Signing-Key
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 32298731672
-          path: signing
-
-      - name: Find signing key
+      - name: Decode signing keystore
         run: |
-          KEYSTORE_FILE=$(find "$GITHUB_WORKSPACE/signing" -type f \( -name "*.jks" -o -name "*.keystore" \) | head -n 1)
-
-          if [ -z "$KEYSTORE_FILE" ]; then
-            echo "No signing key found"
-            find "$GITHUB_WORKSPACE/signing" -type f
-            exit 1
-          fi
-
-          echo "KEYSTORE_FILE=$KEYSTORE_FILE" >> "$GITHUB_ENV"
-          echo "Found signing key: $KEYSTORE_FILE"
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-key.jks
 
       - name: Build signed Play Store AAB
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          cd TillPayday_Android_v0_2
+          cd TillPayday_Android_v0_2_PlayReady
 
-          gradle bundleRelease \
-            "-Pandroid.injected.signing.store.file=$KEYSTORE_FILE" \
-            "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" \
-            "-Pandroid.injected.signing.key.alias=tillpayday" \
-            "-Pandroid.injected.signing.key.password=$KEYSTORE_PASSWORD"
+          cat >> app/build.gradle <<'EOF'
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("../../release-key.jks")
+                      storePassword System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASSWORD")
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          EOF
+
+          gradle bundleRelease
 
       - name: Upload signed AAB
         uses: actions/upload-artifact@v4
         with:
           name: TillPayday-PlayStore-Signed-AAB
-          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
+          path: TillPayday_Android_v0_2_PlayReady/app/build/outputs/bundle/release/app-release.aab
