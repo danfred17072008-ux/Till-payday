@@ -26,53 +26,25 @@ jobs:
       - name: Unzip Till Payday
         run: unzip TillPayday_Android_v0_2_PlayReady.zip
 
-      - name: Set correct Play Store package name
+      - name: Fix package name for Google Play
         run: |
           cd TillPayday_Android_v0_2_PlayReady
-          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
-          sed -i "s/applicationId '[^']*'/applicationId 'com.danfredtaylor.tillpayday'/" app/build.gradle
+          sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' app/build.gradle
+          sed -i 's/com\.danfred17072008\.tillpayday/com.danfredtaylor.tillpayday/g' app/build.gradle
+          grep -nE "namespace|applicationId" app/build.gradle
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
 
-      - name: Decode signing keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-key.jks
-
-      - name: Build signed Play Store AAB
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      - name: Build Play Store AAB
         run: |
           cd TillPayday_Android_v0_2_PlayReady
-
-          cat >> app/build.gradle <<'EOF'
-
-          android {
-              signingConfigs {
-                  release {
-                      storeFile file("../../release-key.jks")
-                      storePassword System.getenv("KEYSTORE_PASSWORD")
-                      keyAlias System.getenv("KEY_ALIAS")
-                      keyPassword System.getenv("KEY_PASSWORD")
-                  }
-              }
-
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.release
-                  }
-              }
-          }
-          EOF
-
           gradle bundleRelease
 
-      - name: Upload signed AAB
+      - name: Upload Till Payday AAB
         uses: actions/upload-artifact@v4
         with:
-          name: TillPayday-PlayStore-Signed-AAB
+          name: TillPayday-PlayStore-AAB
           path: TillPayday_Android_v0_2_PlayReady/app/build/outputs/bundle/release/app-release.aab
