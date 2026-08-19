@@ -39,12 +39,30 @@ jobs:
           run-id: 32298731672
           path: signing
 
+      - name: Find signing key
+        run: |
+          KEYSTORE_FILE=$(find "$GITHUB_WORKSPACE/signing" -type f \( -name "*.jks" -o -name "*.keystore" \) | head -n 1)
+
+          if [ -z "$KEYSTORE_FILE" ]; then
+            echo "No signing key found"
+            find "$GITHUB_WORKSPACE/signing" -type f
+            exit 1
+          fi
+
+          echo "KEYSTORE_FILE=$KEYSTORE_FILE" >> "$GITHUB_ENV"
+          echo "Found signing key: $KEYSTORE_FILE"
+
       - name: Build signed Play Store AAB
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd TillPayday_Android_v0_2
-          gradle bundleRelease "-Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing/tillpayday-upload-key.jks" "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" "-Pandroid.injected.signing.key.alias=tillpayday" "-Pandroid.injected.signing.key.password=$KEYSTORE_PASSWORD"
+
+          gradle bundleRelease \
+            "-Pandroid.injected.signing.store.file=$KEYSTORE_FILE" \
+            "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" \
+            "-Pandroid.injected.signing.key.alias=tillpayday" \
+            "-Pandroid.injected.signing.key.password=$KEYSTORE_PASSWORD"
 
       - name: Upload signed AAB
         uses: actions/upload-artifact@v4
