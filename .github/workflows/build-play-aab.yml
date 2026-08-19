@@ -1,0 +1,50 @@
+name: Build Till Payday Play AAB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get repository files
+        uses: actions/checkout@v6
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Unzip Till Payday
+        run: unzip TillPayday_Android_v0_2_PlayReady.zip
+
+      - name: Fix package name for Google Play
+        run: |
+          cd TillPayday_Android_v0_2_PlayReady
+          sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' app/build.gradle
+          sed -i 's/com\.danfred17072008\.tillpayday/com.danfredtaylor.tillpayday/g' app/build.gradle
+          grep -nE "namespace|applicationId" app/build.gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Build Play Store AAB
+        run: |
+          cd TillPayday_Android_v0_2_PlayReady
+          gradle bundleRelease
+
+      - name: Upload Till Payday AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TillPayday-PlayStore-AAB
+          path: TillPayday_Android_v0_2_PlayReady/app/build/outputs/bundle/release/app-release.aab
