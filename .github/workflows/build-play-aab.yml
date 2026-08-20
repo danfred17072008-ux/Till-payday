@@ -31,18 +31,18 @@ jobs:
           cd TillPayday_Android_v0_2
           sed -i 's/applicationId "[^"]*"/applicationId "com.tillpayday.app"/' app/build.gradle
 
-      - name: Create fresh signing keystore
+      - name: Create signing keystore
         run: |
           cd TillPayday_Android_v0_2
+
           keytool -genkeypair \
-            -v \
-            -keystore tillpayday-release.jks \
-            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -alias "${{ secrets.KEY_ALIAS }}" \
-            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -alias tillpayday \
             -keyalg RSA \
             -keysize 2048 \
             -validity 10000 \
+            -keystore tillpayday-release.jks \
+            -storepass TillPayday2026 \
+            -keypass TillPayday2026 \
             -dname "CN=Till Payday, OU=Till Payday, O=Till Payday, L=Leeds, ST=West Yorkshire, C=GB"
 
       - name: Set up Gradle
@@ -51,21 +51,19 @@ jobs:
           gradle-version: '8.13'
 
       - name: Build signed Play Store AAB
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd TillPayday_Android_v0_2
+
           gradle bundleRelease \
             -Pandroid.injected.signing.store.file="$PWD/tillpayday-release.jks" \
-            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+            -Pandroid.injected.signing.store.password=TillPayday2026 \
+            -Pandroid.injected.signing.key.alias=tillpayday \
+            -Pandroid.injected.signing.key.password=TillPayday2026
 
       - name: Verify AAB signature
         run: |
-          jarsigner -verify -verbose -certs TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
+          jarsigner -verify -verbose -certs \
+            TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload signed Play Store AAB
         uses: actions/upload-artifact@v4
