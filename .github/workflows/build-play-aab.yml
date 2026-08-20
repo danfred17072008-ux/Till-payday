@@ -24,14 +24,16 @@ jobs:
         run: sdkmanager "platforms;android-36"
 
       - name: Unzip Till Payday
-        run: unzip TillPayday_Android_v0_2_PlayReady.zip
+        run: unzip -o TillPayday_Android_v0_2_PlayReady.zip
 
       - name: Fix package name for Play Store
         run: |
-          cd TillPayday_Android_v0_2_PlayReady
-          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
-          sed -i "s/applicationId '[^']*'/applicationId 'com.danfredtaylor.tillpayday'/" app/build.gradle
-          grep applicationId app/build.gradle
+          GRADLE_FILE=$(find . -path "*/app/build.gradle" -print -quit)
+          echo "Found Gradle file: $GRADLE_FILE"
+          test -n "$GRADLE_FILE"
+          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' "$GRADLE_FILE"
+          sed -i "s/applicationId '[^']*'/applicationId 'com.danfredtaylor.tillpayday'/" "$GRADLE_FILE"
+          grep applicationId "$GRADLE_FILE"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -39,5 +41,10 @@ jobs:
           gradle-version: '8.13'
 
       - name: Build Play Store AAB
-        run: |
-          cd TillPayday_Android_v0
+        run: gradle bundleRelease
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TillPayday-PlayStore-AAB
+          path: app/build/outputs/bundle/release/app-release.aab
