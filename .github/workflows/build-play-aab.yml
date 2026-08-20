@@ -29,12 +29,11 @@ jobs:
       - name: Set correct package name
         run: |
           cd TillPayday_Android_v0_2
-          sed -i 's/applicationId "[^"]*"/applicationId "com.tillpayday.app"/' app/build.gradle
+          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
 
       - name: Create signing keystore
         run: |
           cd TillPayday_Android_v0_2
-
           keytool -genkeypair \
             -alias tillpayday \
             -keyalg RSA \
@@ -53,7 +52,6 @@ jobs:
       - name: Build signed Play Store AAB
         run: |
           cd TillPayday_Android_v0_2
-
           gradle bundleRelease \
             -Pandroid.injected.signing.store.file="$PWD/tillpayday-release.jks" \
             -Pandroid.injected.signing.store.password=TillPayday2026 \
