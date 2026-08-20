@@ -24,27 +24,20 @@ jobs:
         run: sdkmanager "platforms;android-36"
 
       - name: Unzip Till Payday
-        run: unzip TillPayday_Android_v0_2_PlayReady.zip
-
-      - name: Fix package name for Google Play
         run: |
-          cd TillPayday_Android_v0_2_PlayReady
-          sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' app/build.gradle
-          sed -i 's/com\.danfred17072008\.tillpayday/com.danfredtaylor.tillpayday/g' app/build.gradle
-          grep -nE "namespace|applicationId" app/build.gradle
+          unzip -o TillPayday_Android_v0_2_PlayReady.zip -d android-project
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.13'
-
-      - name: Build Play Store AAB
+      - name: Force correct Play Store package name
         run: |
-          cd TillPayday_Android_v0_2_PlayReady
-          gradle bundleRelease
+          GRADLE_FILE=$(find android-project -type f -name "build.gradle" -o -name "build.gradle.kts" | grep "/app/" | head -n 1)
 
-      - name: Upload Till Payday AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: TillPayday-PlayStore-AAB
-          path: TillPayday_Android_v0_2_PlayReady/app/build/outputs/bundle/release/app-release.aab
+          if [ -z "$GRADLE_FILE" ]; then
+            echo "Could not find the app Gradle file"
+            exit 1
+          fi
+
+          echo "Editing: $GRADLE_FILE"
+
+          if [[ "$GRADLE_FILE" == *.kts ]]; then
+            sed -i -E 's/applicationId[[:space:]]*=[[:space:]]*"[^"]+"/applicationId = "com.danfredtaylor.tillpayday"/' "$GRADLE_FILE"
+            sed -i -E 's/namespace[[:space:]]*=[[:space:]]*"[^"]
