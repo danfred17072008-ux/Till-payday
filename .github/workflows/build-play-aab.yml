@@ -28,7 +28,7 @@ jobs:
 
       - name: Set correct package name
         run: |
-          cd TillPayday
+          cd TillPayday/TillPayday_Android_v0_2
           sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
 
       - name: Set up Gradle
@@ -38,11 +38,11 @@ jobs:
 
       - name: Build Play Store AAB
         run: |
-          cd TillPayday
+          cd TillPayday/TillPayday_Android_v0_2
           gradle bundleRelease
 
       - name: Upload Play Store AAB
         uses: actions/upload-artifact@v4
         with:
           name: TillPayday-PlayStore-AAB
-          path: TillPayday/app/build/outputs/bundle/release/app-release.aab
+          path: TillPayday/TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
