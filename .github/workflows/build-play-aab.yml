@@ -29,7 +29,7 @@ jobs:
 
       - name: Force correct Play Store package name
         run: |
-          GRADLE_FILE=$(find android-project -type f -name "build.gradle" -o -name "build.gradle.kts" | grep "/app/" | head -n 1)
+          GRADLE_FILE=$(find android-project -type f \( -name "build.gradle" -o -name "build.gradle.kts" \) | grep "/app/" | head -n 1)
 
           if [ -z "$GRADLE_FILE" ]; then
             echo "Could not find the app Gradle file"
@@ -40,4 +40,31 @@ jobs:
 
           if [[ "$GRADLE_FILE" == *.kts ]]; then
             sed -i -E 's/applicationId[[:space:]]*=[[:space:]]*"[^"]+"/applicationId = "com.danfredtaylor.tillpayday"/' "$GRADLE_FILE"
-            sed -i -E 's/namespace[[:space:]]*=[[:space:]]*"[^"]
+            sed -i -E 's/namespace[[:space:]]*=[[:space:]]*"[^"]+"/namespace = "com.danfredtaylor.tillpayday"/' "$GRADLE_FILE"
+          else
+            sed -i -E "s/applicationId[[:space:]]+['\"][^'\"]+['\"]/applicationId 'com.danfredtaylor.tillpayday'/" "$GRADLE_FILE"
+            sed -i -E "s/namespace[[:space:]]+['\"][^'\"]+['\"]/namespace 'com.danfredtaylor.tillpayday'/" "$GRADLE_FILE"
+          fi
+
+          echo "Package details:"
+          grep -nE "applicationId|namespace" "$GRADLE_FILE"
+
+          PROJECT_DIR=$(dirname "$(dirname "$GRADLE_FILE")")
+          echo "$PROJECT_DIR" > /tmp/project_dir
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Build Play Store AAB
+        run: |
+          PROJECT_DIR=$(cat /tmp/project_dir)
+          cd "$PROJECT_DIR"
+          gradle bundleRelease
+
+      - name: Upload Till Payday AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TillPayday-PlayStore-AAB
+          path: android-project/**/app/build/outputs/bundle/release/app-release.aab
