@@ -24,16 +24,26 @@ jobs:
         run: sdkmanager "platforms;android-36"
 
       - name: Unzip Till Payday
-        run: unzip -o TillPayday_Android_v0_2_PlayReady.zip -d TillPayday
+        run: unzip -o TillPayday_Android_v0_2_PlayReady.zip
 
       - name: Set correct package name
         run: |
           cd TillPayday/TillPayday_Android_v0_2
-          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
+          sed -i 's/applicationId "[^"]*"/applicationId "com.tillpayday.app"/' app/build.gradle
 
-      - name: Restore signing keystore
+      - name: Create fresh signing keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > TillPayday/TillPayday_Android_v0_2/tillpayday-release.jks
+          cd TillPayday/TillPayday_Android_v0_2
+          keytool -genkeypair \
+            -v \
+            -keystore tillpayday-release.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -alias "${{ secrets.KEY_ALIAS }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Till Payday, OU=Till Payday, O=Till Payday, L=Leeds, ST=West Yorkshire, C=GB"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -61,4 +71,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: TillPayday-PlayStore-Signed-AAB
-          path: TillPayday/TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
+          path: TillPayday/T
