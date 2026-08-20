@@ -28,12 +28,12 @@ jobs:
 
       - name: Set correct package name
         run: |
-          cd TillPayday/TillPayday_Android_v0_2
+          cd TillPayday_Android_v0_2
           sed -i 's/applicationId "[^"]*"/applicationId "com.tillpayday.app"/' app/build.gradle
 
       - name: Create fresh signing keystore
         run: |
-          cd TillPayday/TillPayday_Android_v0_2
+          cd TillPayday_Android_v0_2
           keytool -genkeypair \
             -v \
             -keystore tillpayday-release.jks \
@@ -56,7 +56,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          cd TillPayday/TillPayday_Android_v0_2
+          cd TillPayday_Android_v0_2
           gradle bundleRelease \
             -Pandroid.injected.signing.store.file="$PWD/tillpayday-release.jks" \
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
@@ -65,10 +65,10 @@ jobs:
 
       - name: Verify AAB signature
         run: |
-          jarsigner -verify -verbose -certs TillPayday/TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
+          jarsigner -verify -verbose -certs TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload signed Play Store AAB
         uses: actions/upload-artifact@v4
         with:
           name: TillPayday-PlayStore-Signed-AAB
-          path: TillPayday/T
+          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
