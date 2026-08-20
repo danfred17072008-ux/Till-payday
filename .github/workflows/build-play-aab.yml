@@ -24,22 +24,7 @@ jobs:
         run: sdkmanager "platforms;android-36"
 
       - name: Unzip Till Payday
-        run: unzip -o TillPayday_Android_v0_2_PlayReady.zip
-
-      - name: Find project and fix package name
-        run: |
-          GRADLE_FILE=$(find . -path "*/app/build.gradle" -print -quit)
-          echo "Found Gradle file: $GRADLE_FILE"
-          test -n "$GRADLE_FILE"
-
-          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' "$GRADLE_FILE"
-          sed -i "s/applicationId '[^']*'/applicationId 'com.danfredtaylor.tillpayday'/" "$GRADLE_FILE"
-
-          PROJECT_DIR=$(dirname "$(dirname "$GRADLE_FILE")")
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-          echo "Using project: $PROJECT_DIR"
-          grep applicationId "$GRADLE_FILE"
+        run: unzip TillPayday_Android_v0_2_PlayReady.zip
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -48,24 +33,11 @@ jobs:
 
       - name: Build Play Store AAB
         run: |
-          cd "$PROJECT_DIR"
+          cd TillPayday_Android_v0_2_PlayReady
           gradle bundleRelease
 
       - name: Find and upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: TillPayday-PlayStore-AAB
-          path: '**/app/build/outputs/bundle/release/app-release.aab'
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.13'
-
-      - name: Build Play Store AAB
-        run: gradle bundleRelease
-
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: TillPayday-PlayStore-AAB
-          path: app/build/outputs/bundle/release/app-release.aab
+          path: TillPayday_Android_v0_2_PlayReady/app/build/outputs/bundle/release/*.aab
