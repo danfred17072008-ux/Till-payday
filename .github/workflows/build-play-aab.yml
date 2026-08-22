@@ -29,9 +29,11 @@ jobs:
       - name: Set correct package name
         run: |
           cd TillPayday_Android_v0_2
-          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
+          sed -i 's/applicationId "[^"]*"/applicationId "com.tillpayday.app"/' app/build.gradle
 
       - name: Create signing keystore
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd TillPayday_Android_v0_2
           keytool -genkeypair \
@@ -40,8 +42,8 @@ jobs:
             -keysize 2048 \
             -validity 10000 \
             -keystore tillpayday-release.jks \
-            -storepass TillPayday2026 \
-            -keypass TillPayday2026 \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEYSTORE_PASSWORD" \
             -dname "CN=Till Payday, OU=Till Payday, O=Till Payday, L=Leeds, ST=West Yorkshire, C=GB"
 
       - name: Set up Gradle
@@ -50,13 +52,15 @@ jobs:
           gradle-version: '8.13'
 
       - name: Build signed Play Store AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd TillPayday_Android_v0_2
           gradle bundleRelease \
             -Pandroid.injected.signing.store.file="$PWD/tillpayday-release.jks" \
-            -Pandroid.injected.signing.store.password=TillPayday2026 \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias=tillpayday \
-            -Pandroid.injected.signing.key.password=TillPayday2026
+            -Pandroid.injected.signing.key.password="$KEYSTORE_PASSWORD"
 
       - name: Verify AAB signature
         run: |
@@ -68,3 +72,5 @@ jobs:
         with:
           name: TillPayday-PlayStore-Signed-AAB
           path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
