@@ -1,0 +1,6 @@
+{
+  "name": "Till Payday",
+  "description": "A straightforward budgeting and money management tool to calculate safe daily spending and track bills until payday.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

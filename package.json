@@ -1,0 +1,14 @@
+{
+  "name": "till-payday",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "mkdir -p dist && cp index.html dist/ && cp privacy-policy.html dist/ 2>/dev/null || true",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

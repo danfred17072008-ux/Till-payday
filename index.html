@@ -240,6 +240,121 @@ button:hover {
   font-size: 15px;
 }
 
+footer {
+  text-align: center;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+footer a {
+  color: #666;
+  text-decoration: underline;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>Till Payday</h1>
+    <div class="tagline">Money without the bollocks.</div>
+  </div>
+  <div class="version">v0.3</div>
+</header>
+
+<div class="card hero" id="heroCard">
+  <div class="progress-container" id="payCycleProgressContainer">
+    <div class="progress-header" id="payCycleProgressHeader">
+      <span id="payCycleProgressTitle">Pay cycle</span>
+      <span id="payCycleProgressText">0 of 0 days passed (0%)</span>
+    </div>
+    <div class="progress-track" id="payCycleProgressTrack">
+      <div class="progress-fill" id="payCycleProgressBar"></div>
+    </div>
+  </div>
+
+  <div class="label" id="safeTodayLabel">Safe to spend today</div>
+  <div class="big-money" id="safeToday">£0.00</div>
+  <div class="subtext" id="summaryText">Enter your money and payday below.</div>
+</div>
+
+<div class="card">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-title">MONEY LEFT</div>
+      <div class="stat-value" id="moneyLeft">£0.00</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">BILLS DUE</div>
+      <div class="stat-value" id="billsDue">£0.00</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">SPENDABLE</div>
+      <div class="stat-value" id="spendable">£0.00</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">DAYS LEFT</div>
+      <div class="stat-value" id="daysLeft">0</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+
+  <div class="field">
+    <label for="moneyInput">Money you've got right now</label>
+    <input type="number" id="moneyInput" step="0.01" placeholder="200.00">
+  </div>
+
+  <div class="field">
+    <label for="paydayInput">Next payday</label>
+    <input type="date" id="paydayInput">
+  </div>
+
+  <div class="field">
+    <label for="voiceInput">Voice</label>
+    <select id="voiceInput">
+      <option value="Normal">Normal</option>
+      <option value="Yorkshire">Yorkshire</option>
+      <option value="Straight">Straight talking</option>
+    </select>
+  </div>
+
+  <button id="updateMoneyBtn" onclick="updateMoney()">Update my money</button>
+</div>
+
+<div class="card">
+  <div class="section-title">BILLS BEFORE PAYDAY</div>
+
+  <div id="noBills" class="subtext">No bills added yet.</div>
+
+  <div class="bill-row">
+    <input type="text" id="billName" placeholder="e.g. Phone">
+    <input type="number" id="billAmount" placeholder="14">
+    <button id="addBillBtn" onclick="addBill()">+</button>
+  </div>
+
+  <div class="bill-list" id="billList"></div>
+</div>
+
+<div class="card">
+  <div class="section-title">CAN I AFFORD IT?</div>
+
+  <div class="field">
+    <label for="purchaseAmount">How much is it?</label>
+    <input type="number" id="purchaseAmount" step="0.01" placeholder="50.00">
+  </div>
+
+  <button id="checkPurchaseBtn" onclick="checkPurchase()">Check it</button>
+
+  <div id="purchaseResult" class="result" style="display:none;"></div>
+</div>
+
 <footer>
   <a href="/privacy-policy.html">Privacy Policy</a>
 </footer>
