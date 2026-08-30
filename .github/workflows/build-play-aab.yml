@@ -31,6 +31,22 @@ jobs:
           cd TillPayday_Android_v0_2
           sed -i 's/applicationId "[^"]*"/applicationId "com.tillpayday.app"/' app/build.gradle
 
+      - name: Remove ARCore requirement
+        run: |
+          cd TillPayday_Android_v0_2
+
+          MANIFEST="app/src/main/AndroidManifest.xml"
+
+          if [ -f "$MANIFEST" ]; then
+            sed -i '/com.google.ar.core/d' "$MANIFEST"
+            sed -i '/android.hardware.camera.ar/d' "$MANIFEST"
+          fi
+
+          sed -i '/com.google.ar:core/d' app/build.gradle || true
+
+          echo "ARCore references remaining:"
+          grep -RniE 'arcore|com\.google\.ar|camera\.ar' app || true
+
       - name: Create signing keystore
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
