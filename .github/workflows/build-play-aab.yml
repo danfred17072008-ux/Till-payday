@@ -65,6 +65,11 @@ jobs:
         run: |
           cd TillPayday_Android_v0_2
 
+          if [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "ERROR: KEYSTORE_PASSWORD secret is missing."
+            exit 1
+          fi
+
           keytool -genkeypair \
             -alias tillpayday \
             -keyalg RSA \
@@ -92,18 +97,21 @@ jobs:
             -Pandroid.injected.signing.key.alias=tillpayday \
             -Pandroid.injected.signing.key.password="$KEYSTORE_PASSWORD"
 
-      - name: Verify AAB signature
+      - name: Verify AAB exists and signature
         run: |
-          jarsigner -verify -verbose -certs \
-            TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
+          AAB="TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab"
 
-      - name: Upload signed Play Store AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: TillPayday-PlayStore-Signed-AAB
-          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 7
+          if [ ! -f "$AAB" ]; then
+            echo "ERROR: AAB was not created."
+            exit 1
+          fi
+
+          echo "AAB CREATED:"
+          ls -lh "$AAB"
+
+          echo "VERIFYING SIGNATURE:"
+          jarsigner -verify -verbose -certs "$AAB"
+
       - name: Upload signed Play Store AAB
         uses: actions/upload-artifact@v4
         with:
