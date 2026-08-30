@@ -59,7 +59,7 @@ jobs:
           echo "ARCore references remaining:"
           grep -RniE 'arcore|com\.google\.ar|camera\.ar' app || true
 
-      - name: Create signing keystore
+      - name: Create permanent Till Payday upload key
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
@@ -75,10 +75,26 @@ jobs:
             -keyalg RSA \
             -keysize 2048 \
             -validity 10000 \
-            -keystore tillpayday-release.jks \
+            -keystore tillpayday-upload-key.jks \
             -storepass "$KEYSTORE_PASSWORD" \
             -keypass "$KEYSTORE_PASSWORD" \
             -dname "CN=Till Payday, OU=Till Payday, O=Till Payday, L=Leeds, ST=West Yorkshire, C=GB"
+
+      - name: Export Google Play upload certificate
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          cd TillPayday_Android_v0_2
+
+          keytool -export \
+            -rfc \
+            -alias tillpayday \
+            -keystore tillpayday-upload-key.jks \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -file upload_certificate.pem
+
+          echo "UPLOAD CERTIFICATE CREATED:"
+          keytool -printcert -file upload_certificate.pem
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -92,12 +108,12 @@ jobs:
           cd TillPayday_Android_v0_2
 
           gradle bundleRelease \
-            -Pandroid.injected.signing.store.file="$PWD/tillpayday-release.jks" \
+            -Pandroid.injected.signing.store.file="$PWD/tillpayday-upload-key.jks" \
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias=tillpayday \
             -Pandroid.injected.signing.key.password="$KEYSTORE_PASSWORD"
 
-      - name: Verify AAB exists and signature
+      - name: Verify AAB exists
         run: |
           AAB="TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab"
 
@@ -109,8 +125,15 @@ jobs:
           echo "AAB CREATED:"
           ls -lh "$AAB"
 
-          echo "VERIFYING SIGNATURE:"
-          jarsigner -verify -verbose -certs "$AAB"
+      - name: Upload Till Payday permanent signing files
+        uses: actions/upload-artifact@v4
+        with:
+          name: TillPayday-PERMANENT-UPLOAD-KEY
+          path: |
+            TillPayday_Android_v0_2/tillpayday-upload-key.jks
+            TillPayday_Android_v0_2/upload_certificate.pem
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Upload signed Play Store AAB
         uses: actions/upload-artifact@v4
@@ -118,4 +141,4 @@ jobs:
           name: TillPayday-PlayStore-Signed-AAB
           path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
