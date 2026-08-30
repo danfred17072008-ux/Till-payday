@@ -29,7 +29,19 @@ jobs:
       - name: Set correct package name
         run: |
           cd TillPayday_Android_v0_2
-          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor,tillpayday"/' app/build.gradle
+
+          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
+          sed -i 's/namespace "[^"]*"/namespace "com.danfredtaylor.tillpayday"/' app/build.gradle
+
+          MANIFEST="app/src/main/AndroidManifest.xml"
+
+          if [ -f "$MANIFEST" ]; then
+            sed -i 's/package="[^"]*"/package="com.danfredtaylor.tillpayday"/' "$MANIFEST"
+          fi
+
+          echo "CHECKING PACKAGE VALUES:"
+          grep -nE 'applicationId|namespace' app/build.gradle
+          grep -n 'package=' "$MANIFEST" || true
 
       - name: Remove ARCore requirement
         run: |
@@ -52,6 +64,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd TillPayday_Android_v0_2
+
           keytool -genkeypair \
             -alias tillpayday \
             -keyalg RSA \
@@ -72,6 +85,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd TillPayday_Android_v0_2
+
           gradle bundleRelease \
             -Pandroid.injected.signing.store.file="$PWD/tillpayday-release.jks" \
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
@@ -83,6 +97,13 @@ jobs:
           jarsigner -verify -verbose -certs \
             TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
 
+      - name: Upload signed Play Store AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TillPayday-PlayStore-Signed-AAB
+          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload signed Play Store AAB
         uses: actions/upload-artifact@v4
         with:
