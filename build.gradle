@@ -1,0 +1,20 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.tillpayday.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.tillpayday.app"
+        minSdk 23
+        targetSdk 36
+        versionCode 3
+        versionName "0.3"
+    }
+}
+
+dependencies {
+    implementation 'com.android.billingclient:billing:9.1.0'
+}
