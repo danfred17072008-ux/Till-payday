@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,779 +7,304 @@
 
 <style>
 :root{
-  --bg:#f4f2ed;
-  --card:#fff;
-  --ink:#151515;
-  --muted:#6d6a64;
-  --line:#dedbd4;
-  --green:#176b3a;
-  --amber:#925800;
-  --red:#9d2828;
+  --bg:#f4f2ed;--card:#fff;--ink:#151515;--muted:#6d6a64;
+  --line:#dedbd4;--green:#176b3a;--amber:#925800;--red:#9d2828
 }
-
 *{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif}
+main{max-width:560px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 14px 38px}
+header{display:flex;justify-content:space-between;align-items:end;margin:3px 2px 15px}
+h1{font-size:29px;margin:0;letter-spacing:-1px}
+h2{margin:0 0 14px;font-size:20px}
+.tag{font-size:12px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 4px 12px #00000008}
+.hero{text-align:center;padding:24px 16px}
+.eyebrow{text-transform:uppercase;font-size:11px;letter-spacing:.1em;font-weight:900;color:var(--muted)}
+.amount{font-size:50px;line-height:1.05;font-weight:950;letter-spacing:-2.5px;margin:5px 0}
+.sub{font-size:14px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.stat{padding:12px;background:#faf9f6;border:1px solid var(--line);border-radius:15px}
+.stat b{display:block;font-size:21px;margin-top:2px}
+label{display:block;font-weight:800;font-size:13px;margin:0 0 6px}
+.field{margin:0 0 12px}
+input,select{width:100%;border:1px solid #ccc7bd;background:#fff;border-radius:13px;padding:13px;font-size:16px;color:var(--ink)}
+button{width:100%;border:0;border-radius:14px;padding:14px;font-size:15px;font-weight:900;background:#111;color:#fff;cursor:pointer}
+button:active{transform:scale(.99)}
+.ghost{background:#ece9e2;color:#111}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.billrow{display:grid;grid-template-columns:1fr 100px 42px;gap:7px;margin:8px 0}
+.billrow input{padding:10px}
+.billrow button{padding:8px;background:#eee9e2;color:#111}
+.answer{display:none;margin-top:10px;padding:13px;border-radius:14px;font-weight:800;line-height:1.35}
+.good{display:block;background:#e1f0e6;color:var(--green)}
+.warn{display:block;background:#fff0d7;color:var(--amber)}
+.bad{display:block;background:#f6dfdf;color:var(--red)}
+.small{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
+.paycard{border:2px solid #111}
+.payprice{font-size:34px;font-weight:950;margin:7px 0}
+.paymsg{font-size:13px;color:var(--muted);margin:8px 0 12px}
+.payok{background:#e1f0e6;color:var(--green);padding:10px;border-radius:12px;font-weight:900;margin-top:10px}
+.probadge{display:inline-block;background:#111;color:#fff;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-bottom:8px}
+.profeature{padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.profeature:last-child{border-bottom:0}
+#proControls{display:none}
+body.pro #proControls{display:block}
+body.pro #upgradeCard{display:none}
+.landscapeOnly{display:none}
 
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--ink);
-  font-family:system-ui,-apple-system,sans-serif;
-}
-
-main{
-  max-width:560px;
-  margin:auto;
-  padding:calc(18px + env(safe-area-inset-top)) 14px 38px;
-}
-
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:end;
-  margin:3px 2px 15px;
-}
-
-h1{
-  font-size:29px;
-  margin:0;
-  letter-spacing:-1px;
-}
-
-h2{
-  margin:0 0 14px;
-  font-size:20px;
-}
-
-.tag{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:20px;
-  padding:16px;
-  margin-bottom:12px;
-  box-shadow:0 4px 12px #00000008;
-}
-
-.hero{
-  text-align:center;
-  padding:24px 16px;
-}
-
-.eyebrow{
-  text-transform:uppercase;
-  font-size:11px;
-  letter-spacing:.1em;
-  font-weight:900;
-  color:var(--muted);
-}
-
-.amount{
-  font-size:50px;
-  line-height:1.05;
-  font-weight:950;
-  letter-spacing:-2.5px;
-  margin:5px 0;
-}
-
-.sub{
-  font-size:14px;
-  color:var(--muted);
-}
-
-.stats{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-}
-
-.stat{
-  padding:12px;
-  background:#faf9f6;
-  border:1px solid var(--line);
-  border-radius:15px;
-}
-
-.stat b{
-  display:block;
-  font-size:21px;
-  margin-top:2px;
-}
-
-label{
-  display:block;
-  font-weight:800;
-  font-size:13px;
-  margin:0 0 6px;
-}
-
-.field{
-  margin:0 0 12px;
-}
-
-input,select{
-  width:100%;
-  border:1px solid #ccc7bd;
-  background:#fff;
-  border-radius:13px;
-  padding:13px;
-  font-size:16px;
-  color:var(--ink);
-}
-
-button{
-  width:100%;
-  border:0;
-  border-radius:14px;
-  padding:14px;
-  font-size:15px;
-  font-weight:900;
-  background:#111;
-  color:#fff;
-  cursor:pointer;
-}
-
-button:active{
-  transform:scale(.99);
-}
-
-.ghost{
-  background:#ece9e2;
-  color:#111;
-}
-
-.two{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
-
-.billrow{
-  display:grid;
-  grid-template-columns:1fr 100px 42px;
-  gap:7px;
-  margin:8px 0;
-}
-
-.billrow input{
-  padding:10px;
-}
-
-.billrow button{
-  padding:8px;
-  background:#eee9e2;
-  color:#111;
-}
-
-.answer{
-  display:none;
-  margin-top:10px;
-  padding:13px;
-  border-radius:14px;
-  font-weight:800;
-  line-height:1.35;
-}
-
-.good{
-  display:block;
-  background:#e1f0e6;
-  color:var(--green);
-}
-
-.warn{
-  display:block;
-  background:#fff0d7;
-  color:var(--amber);
-}
-
-.bad{
-  display:block;
-  background:#f6dfdf;
-  color:var(--red);
-}
-
-.small{
-  font-size:12px;
-  color:var(--muted);
-  text-align:center;
-  margin-top:16px;
-}
-
-.paycard{
-  border:2px solid #111;
-}
-
-.payprice{
-  font-size:34px;
-  font-weight:950;
-  margin:7px 0;
-}
-
-.paymsg{
-  font-size:13px;
-  color:var(--muted);
-  margin:8px 0 12px;
-}
-
-.payok{
-  background:#e1f0e6;
-  color:var(--green);
-  padding:10px;
-  border-radius:12px;
-  font-weight:900;
-  margin-top:10px;
-}
-
-.probadge{
-  display:inline-block;
-  background:#111;
-  color:#fff;
-  border-radius:999px;
-  padding:5px 9px;
-  font-size:11px;
-  font-weight:900;
-  margin-bottom:8px;
-}
-
-.profeature{
-  padding:10px 0;
-  border-bottom:1px solid var(--line);
-  font-size:14px;
-}
-
-.profeature:last-child{
-  border-bottom:0;
-}
-
-.locked{
-  opacity:.65;
-}
-
-#proControls{
-  display:none;
-}
-
-body.pro #proControls{
-  display:block;
-}
-
-body.pro #upgradeCard{
-  display:none;
-}
-
-.landscapeOnly{
-  display:none;
-}
-
-/* PRO expanded landscape dashboard */
 @media (orientation:landscape) and (min-width:650px){
-
-  main{
-    max-width:1050px;
-  }
-
-  body.pro main{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-  }
-
-  body.pro header{
-    grid-column:1/-1;
-  }
-
-  body.pro .hero{
-    grid-column:1/-1;
-  }
-
-  body.pro .landscapeOnly{
-    display:block;
-  }
-
-  body.pro .wide{
-    grid-column:1/-1;
-  }
-
-  .amount{
-    font-size:60px;
-  }
+  main{max-width:1050px}
+  body.pro main{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  body.pro header{grid-column:1/-1}
+  body.pro .hero{grid-column:1/-1}
+  body.pro .landscapeOnly{display:block}
+  body.pro .wide{grid-column:1/-1}
+  .amount{font-size:60px}
 }
 </style>
 </head>
 
 <body>
-
 <main>
 
 <header>
-  <div>
-    <h1>Till Payday</h1>
-    <div class="tag">Money without the bollocks.</div>
-  </div>
-  <div class="tag">v0.4</div>
+<div>
+<h1>Till Payday</h1>
+<div class="tag">Money without the bollocks.</div>
+</div>
+<div class="tag">v0.4</div>
 </header>
 
-
 <section class="card hero">
-  <div class="eyebrow">Safe to spend today</div>
-  <div id="daily" class="amount">£0.00</div>
-  <div id="heroSub" class="sub">
-    Tell me what you've got and when payday is.
-  </div>
+<div class="eyebrow">Safe to spend today</div>
+<div id="daily" class="amount">£0.00</div>
+<div id="heroSub" class="sub">Tell me what you've got and when payday is.</div>
 </section>
-
 
 <section class="card stats">
-  <div class="stat">
-    <span class="eyebrow">Money left</span>
-    <b id="money">£0.00</b>
-  </div>
-
-  <div class="stat">
-    <span class="eyebrow">Bills due</span>
-    <b id="billTotal">£0.00</b>
-  </div>
-
-  <div class="stat">
-    <span class="eyebrow">Spendable</span>
-    <b id="spendable">£0.00</b>
-  </div>
-
-  <div class="stat">
-    <span class="eyebrow">Days left</span>
-    <b id="days">—</b>
-  </div>
+<div class="stat"><span class="eyebrow">Money left</span><b id="money">£0.00</b></div>
+<div class="stat"><span class="eyebrow">Bills due</span><b id="billTotal">£0.00</b></div>
+<div class="stat"><span class="eyebrow">Spendable</span><b id="spendable">£0.00</b></div>
+<div class="stat"><span class="eyebrow">Days left</span><b id="days">—</b></div>
 </section>
 
-
 <section class="card">
-
 <h2>Your money</h2>
 
 <div class="field">
-  <label for="balance">How much money have you got?</label>
-  <input
-    id="balance"
-    type="number"
-    inputmode="decimal"
-    step="0.01"
-    placeholder="£0.00">
+<label for="balance">How much money have you got?</label>
+<input id="balance" type="number" inputmode="decimal" step="0.01" placeholder="£0.00">
 </div>
 
 <div class="field">
-  <label for="payday">Next payday</label>
-  <input id="payday" type="date">
+<label for="payday">Next payday</label>
+<input id="payday" type="date">
 </div>
 
 <button onclick="calculate()">Update my budget</button>
-
 </section>
 
-
 <section class="card">
-
 <h2>Bills before payday</h2>
-
 <div id="bills"></div>
-
-<button class="ghost" onclick="addBill()">
-  + Add a bill
-</button>
-
+<button class="ghost" onclick="addBill()">+ Add a bill</button>
 </section>
 
-
 <section class="card">
-
 <h2>Can I afford it?</h2>
 
 <div class="field">
-  <label for="purchase">How much is it?</label>
-  <input
-    id="purchase"
-    type="number"
-    inputmode="decimal"
-    step="0.01"
-    placeholder="£0.00">
+<label for="purchase">How much is it?</label>
+<input id="purchase" type="number" inputmode="decimal" step="0.01" placeholder="£0.00">
 </div>
 
-<button onclick="checkPurchase()">
-  Tell me
-</button>
-
+<button onclick="checkPurchase()">Tell me</button>
 <div id="answer" class="answer"></div>
-
 </section>
 
-
 <section id="upgradeCard" class="card paycard">
-
 <div class="probadge">TILL PAYDAY PRO</div>
-
 <h2>Want the better version?</h2>
 
 <div class="payprice">£3</div>
+<div class="paymsg">One payment. No subscription.</div>
 
-<div class="paymsg">
-  One payment. No subscription.
-</div>
+<div class="profeature">✓ More local voices and dialects</div>
+<div class="profeature">✓ Expanded landscape dashboard</div>
+<div class="profeature">✓ More detailed spending advice</div>
+<div class="profeature">✓ Extra budget tools</div>
+<div class="profeature">✓ Future Pro features included</div>
 
-<div class="profeature">
-  ✓ More local voices and dialects
-</div>
+<button id="buyProButton" onclick="buyPro()">Unlock Pro — £3</button>
 
-<div class="profeature">
-  ✓ Expanded landscape dashboard
-</div>
-
-<div class="profeature">
-  ✓ More detailed spending advice
-</div>
-
-<div class="profeature">
-  ✓ Extra budget tools
-</div>
-
-<div class="profeature">
-  ✓ Future Pro features included
-</div>
-
-<button onclick="buyPro()">
-  Unlock Pro — £3
-</button>
-
-<div class="small">
-  Purchase handled securely through Google Play.
-</div>
-
+<div class="small">Purchase handled securely through Google Play.</div>
 </section>
 
-
 <section id="proControls" class="card">
-
 <div class="probadge">PRO</div>
-
 <h2>Make it sound like home</h2>
 
 <div class="field">
 <label for="voice">Money coach</label>
-
 <select id="voice" onchange="saveAndCalculate()">
-  <option value="standard">Straight talking</option>
-  <option value="yorkshire">Yorkshire</option>
-  <option value="scouse">Scouse</option>
-  <option value="cockney">Cockney</option>
-  <option value="geordie">Geordie</option>
-  <option value="brummie">Brummie</option>
+<option value="standard">Straight talking</option>
+<option value="yorkshire">Yorkshire</option>
+<option value="scouse">Scouse</option>
+<option value="cockney">Cockney</option>
+<option value="geordie">Geordie</option>
+<option value="brummie">Brummie</option>
 </select>
 </div>
 
-<div class="payok">
-  Pro unlocked. Nice one.
-</div>
-
+<div class="payok">Pro unlocked. Nice one.</div>
 </section>
 
-
 <section class="card landscapeOnly">
-
 <div class="probadge">LANDSCAPE PRO</div>
-
 <h2>Quick view</h2>
 
 <div class="stats">
-
-<div class="stat">
-<span class="eyebrow">Per week</span>
-<b id="weekly">£0.00</b>
+<div class="stat"><span class="eyebrow">Per week</span><b id="weekly">£0.00</b></div>
+<div class="stat"><span class="eyebrow">After bills</span><b id="afterBills">£0.00</b></div>
 </div>
 
-<div class="stat">
-<span class="eyebrow">After bills</span>
-<b id="afterBills">£0.00</b>
-</div>
-
-</div>
-
-<div class="small">
-  Turn your phone upright anytime for the simple view.
-</div>
-
+<div class="small">Turn your phone upright anytime for the simple view.</div>
 </section>
-
 
 <section class="card wide">
-
 <div class="two">
-
-<button class="ghost" onclick="resetData()">
-  Reset
-</button>
-
-<button onclick="calculate()">
-  Refresh
-</button>
-
+<button class="ghost" onclick="resetData()">Reset</button>
+<button onclick="calculate()">Refresh</button>
 </div>
-
 </section>
 
-
-<div class="small">
-Till Payday keeps your budget on this device.
-</div>
+<div class="small">Till Payday keeps your budget on this device.</div>
 
 </main>
 
-
 <script>
 
-const £ = n =>
-  new Intl.NumberFormat(
-    "en-GB",
-    {
-      style:"currency",
-      currency:"GBP"
-    }
-  ).format(Number(n)||0);
-
-
-function getBills(){
-
-  return [...document.querySelectorAll(".billrow")]
-    .map(row => ({
-      name:row.querySelector(".billname").value,
-      amount:Number(row.querySelector(".billamount").value)||0
-    }));
-
-}
-
-
-function addBill(name="",amount=""){
-
-  const row=document.createElement("div");
-
-  row.className="billrow";
-
-  row.innerHTML=`
-    <input
-      class="billname"
-      placeholder="Bill"
-      value="${escapeHtml(name)}">
-
-    <input
-      class="billamount"
-      type="number"
-      inputmode="decimal"
-      step="0.01"
-      placeholder="£"
-      value="${amount}">
-
-    <button
-      type="button"
-      aria-label="Remove bill"
-      onclick="this.parentElement.remove();saveAndCalculate()">
-      ×
-    </button>
-  `;
-
-  row.querySelectorAll("input").forEach(input=>{
-    input.addEventListener("input",saveAndCalculate);
-  });
-
-  document.getElementById("bills").appendChild(row);
-
-}
-
+const moneyFormat = n =>
+new Intl.NumberFormat("en-GB",{
+style:"currency",
+currency:"GBP"
+}).format(Number(n)||0);
 
 function escapeHtml(text){
-
-  return String(text)
-    .replaceAll("&","&amp;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
-
+return String(text)
+.replaceAll("&","&amp;")
+.replaceAll('"',"&quot;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;");
 }
 
+function getBills(){
+return [...document.querySelectorAll(".billrow")].map(row=>({
+name:row.querySelector(".billname").value,
+amount:Number(row.querySelector(".billamount").value)||0
+}));
+}
+
+function addBill(name="",amount=""){
+const row=document.createElement("div");
+row.className="billrow";
+
+row.innerHTML=`
+<input class="billname" placeholder="Bill" value="${escapeHtml(name)}">
+<input class="billamount" type="number" inputmode="decimal" step="0.01" placeholder="£" value="${amount}">
+<button type="button" aria-label="Remove bill" onclick="this.parentElement.remove();saveAndCalculate()">×</button>
+`;
+
+row.querySelectorAll("input").forEach(input=>{
+input.addEventListener("input",saveAndCalculate);
+});
+
+document.getElementById("bills").appendChild(row);
+}
 
 function daysUntilPayday(){
+const value=document.getElementById("payday").value;
+if(!value)return 0;
 
-  const value=document.getElementById("payday").value;
+const now=new Date();
+now.setHours(0,0,0,0);
 
-  if(!value) return 0;
+const payday=new Date(value+"T00:00:00");
+const diff=Math.ceil((payday-now)/(1000*60*60*24));
 
-  const now=new Date();
-
-  now.setHours(0,0,0,0);
-
-  const payday=new Date(value+"T00:00:00");
-
-  const diff=Math.ceil(
-    (payday-now)/(1000*60*60*24)
-  );
-
-  return Math.max(diff,1);
-
+return Math.max(diff,1);
 }
-
 
 function coachMessage(daily){
+const voice=document.getElementById("voice").value;
 
-  const voice=document.getElementById("voice").value;
-
-  if(!document.body.classList.contains("pro")){
-    return "That's what you can safely spend each day until payday.";
-  }
-
-  const messages={
-
-    standard:
-      `You've got ${£(daily)} a day to play with.`,
-
-    yorkshire:
-      `Tha's got ${£(daily)} a day. Don't go daft.`,
-
-    scouse:
-      `You've got ${£(daily)} a day, la. Keep an eye on it.`,
-
-    cockney:
-      `You've got ${£(daily)} a day. Lovely jubbly — don't rinse it.`,
-
-    geordie:
-      `You've got ${£(daily)} a day, pet. Gan canny.`,
-
-    brummie:
-      `You've got ${£(daily)} a day. Keep it steady, bab.`
-
-  };
-
-  return messages[voice] || messages.standard;
-
+if(!document.body.classList.contains("pro")){
+return "That's what you can safely spend each day until payday.";
 }
 
+const messages={
+standard:`You've got ${moneyFormat(daily)} a day to play with.`,
+yorkshire:`Tha's got ${moneyFormat(daily)} a day. Don't go daft.`,
+scouse:`You've got ${moneyFormat(daily)} a day, la. Keep an eye on it.`,
+cockney:`You've got ${moneyFormat(daily)} a day. Lovely jubbly — don't rinse it.`,
+geordie:`You've got ${moneyFormat(daily)} a day, pet. Gan canny.`,
+brummie:`You've got ${moneyFormat(daily)} a day. Keep it steady, bab.`
+};
+
+return messages[voice]||messages.standard;
+}
 
 function calculate(){
+const balance=Number(document.getElementById("balance").value)||0;
+const bills=getBills();
+const billTotal=bills.reduce((total,bill)=>total+bill.amount,0);
+const spendable=balance-billTotal;
+const days=daysUntilPayday();
+const daily=days>0?Math.max(spendable,0)/days:0;
+const weekly=daily*7;
 
-  const balance=
-    Number(document.getElementById("balance").value)||0;
+document.getElementById("money").textContent=moneyFormat(balance);
+document.getElementById("billTotal").textContent=moneyFormat(billTotal);
+document.getElementById("spendable").textContent=moneyFormat(spendable);
+document.getElementById("daily").textContent=moneyFormat(daily);
+document.getElementById("weekly").textContent=moneyFormat(weekly);
+document.getElementById("afterBills").textContent=moneyFormat(spendable);
 
-  const bills=getBills();
+document.getElementById("days").textContent=
+document.getElementById("payday").value?days:"—";
 
-  const billTotal=bills.reduce(
-    (total,bill)=>total+bill.amount,
-    0
-  );
-
-  const spendable=balance-billTotal;
-
-  const days=daysUntilPayday();
-
-  const daily=
-    days>0
-      ? Math.max(spendable,0)/days
-      : 0;
-
-  const weekly=daily*7;
-
-
-  document.getElementById("money").textContent=£(balance);
-
-  document.getElementById("billTotal").textContent=£(billTotal);
-
-  document.getElementById("spendable").textContent=£(spendable);
-
-  document.getElementById("daily").textContent=£(daily);
-
-  document.getElementById("weekly").textContent=£(weekly);
-
-  document.getElementById("afterBills").textContent=£(spendable);
-
-  document.getElementById("days").textContent=
-    document.getElementById("payday").value
-      ? days
-      : "—";
-
-
-  if(!document.getElementById("payday").value){
-
-    document.getElementById("heroSub").textContent=
-      "Tell me what you've got and when payday is.";
-
-  }else if(spendable<0){
-
-    document.getElementById("heroSub").textContent=
-      "Your bills are higher than the money you've got.";
-
-  }else{
-
-    document.getElementById("heroSub").textContent=
-      coachMessage(daily);
-
-  }
-
-  saveData();
-
+if(!document.getElementById("payday").value){
+document.getElementById("heroSub").textContent=
+"Tell me what you've got and when payday is.";
+}else if(spendable<0){
+document.getElementById("heroSub").textContent=
+"Your bills are higher than the money you've got.";
+}else{
+document.getElementById("heroSub").textContent=coachMessage(daily);
 }
 
+saveData();
+}
 
 function checkPurchase(){
+calculate();
 
-  calculate();
+const price=Number(document.getElementById("purchase").value)||0;
+const balance=Number(document.getElementById("balance").value)||0;
 
-  const price=
-    Number(document.getElementById("purchase").value)||0;
+const bills=getBills().reduce(
+(total,bill)=>total+bill.amount,0
+);
 
-  const balance=
-    Number(document.getElementById("balance").value)||0;
+const days=daysUntilPayday();
+const spendable=balance-bills;
+const after=spendable-price;
+const answer=document.getElementById("answer");
 
-  const bills=getBills().reduce(
-    (total,bill)=>total+bill.amount,
-    0
-  );
+if(price<=0){
+answer.className="answer warn";
+answer.textContent="Stick a price in first.";
+return;
+}
 
-  const days=daysUntilPayday();
-
-  const spendable=balance-bills;
-
-  const after=spendable-price;
-
-  const answer=document.getElementById("answer");
-
-
-  if(price<=0){
-
-    answer.className="answer warn";
-
-    answer.textContent=
-      "Stick a price in first.";
-
-    return;
-
-  }
-
-
-  if(after<0){
-
-    answer.className="answer bad";
-
-    answer.textContent=
-      `Nope. That would leave you ${£(Math.abs(after))} short before payday.`;
-
-    return;
-
-  }
-
-
-  const newDaily=
-    days>0
-      ? after/days
-      : after;
-
-
-  if(after < spendable*0.25){
-
-    answer.className="
+if
