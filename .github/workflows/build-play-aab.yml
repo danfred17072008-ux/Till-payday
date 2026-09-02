@@ -3,6 +3,10 @@ name: Build Till Payday Play AAB
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -59,10 +63,13 @@ jobs:
           echo "ARCore references remaining:"
           grep -RniE 'arcore|com\.google\.ar|camera\.ar' app || true
 
-      - name: Create permanent Till Payday upload key
+      - name: Restore exact Google Play upload key
         env:
+          GH_TOKEN: ${{ github.token }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
+          set -e
+
           cd TillPayday_Android_v0_2
 
           if [ -z "$KEYSTORE_PASSWORD" ]; then
@@ -70,31 +77,40 @@ jobs:
             exit 1
           fi
 
-          keytool -genkeypair \
-            -alias tillpayday \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
+          mkdir -p key-backup
+
+          gh run download 33337006677 \
+            --repo "$GITHUB_REPOSITORY" \
+            --name TillPayday-PERMANENT-UPLOAD-KEY \
+            --dir key-backup
+
+          cp key-backup/tillpayday-upload-key.jks tillpayday-upload-key.jks
+
+          ACTUAL_SHA1=$(keytool -list -v \
             -keystore tillpayday-upload-key.jks \
             -storepass "$KEYSTORE_PASSWORD" \
-            -keypass "$KEYSTORE_PASSWORD" \
-            -dname "CN=Till Payday, OU=Till Payday, O=Till Payday, L=Leeds, ST=West Yorkshire, C=GB"
+            -alias tillpayday 2>/dev/null \
+            | sed -n 's/^[[:space:]]*SHA1: //p' \
+            | head -n 1)
 
-      - name: Export Google Play upload certificate
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        run: |
-          cd TillPayday_Android_v0_2
+          EXPECTED_SHA1="33:A3:BA:91:2F:5B:87:7D:36:7B:66:AB:17:3C:91:46:6F:75:27:2E"
 
-          keytool -export \
+          echo "EXPECTED SHA1: $EXPECTED_SHA1"
+          echo "ACTUAL SHA1:   $ACTUAL_SHA1"
+
+          if [ "$ACTUAL_SHA1" != "$EXPECTED_SHA1" ]; then
+            echo "ERROR: WRONG GOOGLE PLAY KEY - BUILD STOPPED."
+            exit 1
+          fi
+
+          keytool -exportcert \
             -rfc \
             -alias tillpayday \
             -keystore tillpayday-upload-key.jks \
             -storepass "$KEYSTORE_PASSWORD" \
             -file upload_certificate.pem
 
-          echo "UPLOAD CERTIFICATE CREATED:"
-          keytool -printcert -file upload_certificate.pem
+          echo "CORRECT GOOGLE PLAY UPLOAD KEY VERIFIED."
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -125,7 +141,7 @@ jobs:
           echo "AAB CREATED:"
           ls -lh "$AAB"
 
-      - name: Upload Till Payday permanent signing files
+      - name: Back up correct upload key
         uses: actions/upload-artifact@v4
         with:
           name: TillPayday-PERMANENT-UPLOAD-KEY
@@ -133,7 +149,7 @@ jobs:
             TillPayday_Android_v0_2/tillpayday-upload-key.jks
             TillPayday_Android_v0_2/upload_certificate.pem
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
 
       - name: Upload signed Play Store AAB
         uses: actions/upload-artifact@v4
