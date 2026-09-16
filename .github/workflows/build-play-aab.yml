@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
   build:
@@ -20,141 +19,37 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android 36
-        run: sdkmanager "platforms;android-36"
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-36"
 
       - name: Unzip Till Payday
-        run: unzip -o TillPayday_Android_v0_2_PlayReady.zip
+        run: |
+          unzip -o TillPayday_Android_v0_2_PlayReady.zip
 
-      - name: Set correct package name
+      - name: Check project
         run: |
           cd TillPayday_Android_v0_2
+          ls -la
+          chmod +x gradlew
 
-          sed -i 's/applicationId "[^"]*"/applicationId "com.danfredtaylor.tillpayday"/' app/build.gradle
-          sed -i 's/namespace "[^"]*"/namespace "com.danfredtaylor.tillpayday"/' app/build.gradle
-
-          MANIFEST="app/src/main/AndroidManifest.xml"
-
-          if [ -f "$MANIFEST" ]; then
-            sed -i 's/package="[^"]*"/package="com.danfredtaylor.tillpayday"/' "$MANIFEST"
-          fi
-
-          echo "CHECKING PACKAGE VALUES:"
-          grep -nE 'applicationId|namespace' app/build.gradle
-          grep -n 'package=' "$MANIFEST" || true
-
-      - name: Remove ARCore requirement
+      - name: Build release AAB
         run: |
           cd TillPayday_Android_v0_2
+          ./gradlew clean bundleRelease --stacktrace
 
-          MANIFEST="app/src/main/AndroidManifest.xml"
-
-          if [ -f "$MANIFEST" ]; then
-            sed -i '/com.google.ar.core/d' "$MANIFEST"
-            sed -i '/android.hardware.camera.ar/d' "$MANIFEST"
-          fi
-
-          sed -i '/com.google.ar:core/d' app/build.gradle || true
-
-          echo "ARCore references remaining:"
-          grep -RniE 'arcore|com\.google\.ar|camera\.ar' app || true
-
-      - name: Restore exact Google Play upload key
-        env:
-          GH_TOKEN: ${{ github.token }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      - name: Find built AAB
         run: |
-          set -e
+          find TillPayday_Android_v0_2 -type f -name "*.aab" -print
 
-          cd TillPayday_Android_v0_2
-
-          if [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "ERROR: KEYSTORE_PASSWORD secret is missing."
-            exit 1
-          fi
-
-          mkdir -p key-backup
-
-          gh run download 33337006677 \
-            --repo "$GITHUB_REPOSITORY" \
-            --name TillPayday-PERMANENT-UPLOAD-KEY \
-            --dir key-backup
-
-          cp key-backup/tillpayday-upload-key.jks tillpayday-upload-key.jks
-
-          ACTUAL_SHA1=$(keytool -list -v \
-            -keystore tillpayday-upload-key.jks \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -alias tillpayday 2>/dev/null \
-            | sed -n 's/^[[:space:]]*SHA1: //p' \
-            | head -n 1)
-
-          EXPECTED_SHA1="33:A3:BA:91:2F:5B:87:7D:36:7B:66:AB:17:3C:91:46:6F:75:27:2E"
-
-          echo "EXPECTED SHA1: $EXPECTED_SHA1"
-          echo "ACTUAL SHA1:   $ACTUAL_SHA1"
-
-          if [ "$ACTUAL_SHA1" != "$EXPECTED_SHA1" ]; then
-            echo "ERROR: WRONG GOOGLE PLAY KEY - BUILD STOPPED."
-            exit 1
-          fi
-
-          keytool -exportcert \
-            -rfc \
-            -alias tillpayday \
-            -keystore tillpayday-upload-key.jks \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -file upload_certificate.pem
-
-          echo "CORRECT GOOGLE PLAY UPLOAD KEY VERIFIED."
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.13'
-
-      - name: Build signed Play Store AAB
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        run: |
-          cd TillPayday_Android_v0_2
-
-          gradle bundleRelease \
-            -Pandroid.injected.signing.store.file="$PWD/tillpayday-upload-key.jks" \
-            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias=tillpayday \
-            -Pandroid.injected.signing.key.password="$KEYSTORE_PASSWORD"
-
-      - name: Verify AAB exists
-        run: |
-          AAB="TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab"
-
-          if [ ! -f "$AAB" ]; then
-            echo "ERROR: AAB was not created."
-            exit 1
-          fi
-
-          echo "AAB CREATED:"
-          ls -lh "$AAB"
-
-      - name: Back up correct upload key
+      - name: Upload Till Payday AAB
         uses: actions/upload-artifact@v4
         with:
-          name: TillPayday-PERMANENT-UPLOAD-KEY
-          path: |
-            TillPayday_Android_v0_2/tillpayday-upload-key.jks
-            TillPayday_Android_v0_2/upload_certificate.pem
+          name: TillPayday-Play-AAB
+          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload signed Play Store AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: TillPayday-PlayStore-Signed-AAB
-          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 30
