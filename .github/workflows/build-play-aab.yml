@@ -21,17 +21,13 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Check Android SDK
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          which sdkmanager
-          sdkmanager --version
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Install Android 36
         run: |
           yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-36"
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - name: Unzip Till Payday
         run: |
@@ -41,26 +37,27 @@ jobs:
       - name: Set correct package name
         run: |
           cd TillPayday_Android_v0_2
-          grep -RIl "com.tillpayday.app" . | xargs -r sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g'
+          sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' app/build.gradle || true
+          sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' app/build.gradle.kts || true
+          grep -R "com.danfredtaylor.tillpayday" app || true
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.13'
+      - name: Make Gradle executable
+        run: |
+          cd TillPayday_Android_v0_2
+          chmod +x gradlew
 
       - name: Build release AAB
         run: |
           cd TillPayday_Android_v0_2
-          gradle bundleRelease --stacktrace
+          ./gradlew bundleRelease --stacktrace
 
       - name: Find built AAB
         run: |
-          echo "AAB files:"
           find TillPayday_Android_v0_2 -type f -name "*.aab" -print
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: TillPayday-PlayStore-AAB
-          path: TillPayday_Android_v0_2/**/build/outputs/bundle/release/*.aab
+          name: TillPayday-Play-AAB
+          path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
