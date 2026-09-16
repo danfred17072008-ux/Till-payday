@@ -21,22 +21,34 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 36
+        run: sdkmanager "platforms;android-36"
+
       - name: Unzip Till Payday
         run: unzip -o TillPayday_Android_v0_2_PlayReady.zip
 
-      - name: Check project
+      - name: Set correct package name
         run: |
           cd TillPayday_Android_v0_2
-          ls -la
-          chmod +x gradlew
+          sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' app/build.gradle
+          grep -R "com.danfredtaylor.tillpayday" app/build.gradle || true
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
 
       - name: Build release AAB
         run: |
           cd TillPayday_Android_v0_2
-          ./gradlew bundleRelease
+          gradle bundleRelease
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: TillPayday-Play-AAB
+          name: TillPayday-PlayStore-AAB
           path: TillPayday_Android_v0_2/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
