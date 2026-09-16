@@ -25,58 +25,35 @@ jobs:
           rm -rf TillPayday_Android_v0_2
           unzip -o TillPayday_Android_v0_2_PlayReady.zip
 
-      - name: Check project
-        run: |
-          echo "=== PROJECT FILES ==="
-          ls -la TillPayday_Android_v0_2
-          test -f TillPayday_Android_v0_2/gradlew
-          test -f TillPayday_Android_v0_2/app/build.gradle
-
       - name: Set correct Play Store package
         run: |
           cd TillPayday_Android_v0_2
           sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' app/build.gradle
-          find app/src -type f \( -name "*.java" -o -name "*.xml" \) -exec sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' {} +
+          find app/src -type f -name "*.java" -exec sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' {} \;
+          find app/src -type f -name "*.xml" -exec sed -i 's/com\.tillpayday\.app/com.danfredtaylor.tillpayday/g' {} \;
 
-      - name: Set up Android SDK 36
-        run: |
-          export ANDROID_HOME="$HOME/android-sdk"
-          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
 
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
-          cd /tmp
-
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip -q commandlinetools-linux-11076708_latest.zip
-
-          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
-          mv cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
-
-          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
-
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "platform-tools" \
-            "platforms;android-36" \
-            "build-tools;36.0.0"
+      - name: Create Gradle wrapper
+        working-directory: TillPayday_Android_v0_2
+        run: gradle wrapper --gradle-version 8.13
 
       - name: Make Gradle executable
         run: chmod +x TillPayday_Android_v0_2/gradlew
 
-      - name: Build Till Payday AAB
+      - name: Build release AAB
         working-directory: TillPayday_Android_v0_2
         run: ./gradlew clean bundleRelease --stacktrace --no-daemon
 
-      - name: Show finished AAB
+      - name: Find built AAB
         run: |
-          echo "=== BUILT AAB ==="
+          echo "=== FINISHED AAB ==="
           find TillPayday_Android_v0_2 -type f -name "*.aab" -print
 
-      - name: Upload Till Payday AAB
+      - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: TillPayday-Play-AAB
