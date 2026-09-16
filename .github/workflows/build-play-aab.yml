@@ -39,17 +39,61 @@ jobs:
           cd TillPayday_Android_v0_2
           gradle bundleRelease
 
-      - name: Restore signing key
+      - name: Get permanent upload key
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          GH_TOKEN: ${{ github.token }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > tillpayday-release.jks
+          ARTIFACT_URL=$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=TillPayday-PERMANENT-UPLOAD-KEY&per_page=100" \
+            | jq -r '[.artifacts[] | select(.expired == false)] | sort_by(.created_at) | reverse | .[0].archive_download_url // empty')
+
+          if [ -z "$ARTIFACT_URL" ]; then
+            echo "Permanent upload key artifact not found"
+            exit 1
+          fi
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$ARTIFACT_URL" \
+            -o permanent-key.zip
+
+          mkdir -p signing-key
+          unzip -o permanent-key.zip -d signing-key
+
+          KEYSTORE=$(find signing-key -type f -name "*.jks" | head -n 1)
+
+          if [ -z "$KEYSTORE" ]; then
+            echo "JKS file not found inside permanent key artifact"
+            exit 1
+          fi
+
+          ACTUAL_SHA1=$(keytool -list -v \
+            -keystore "$KEYSTORE" \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -alias tillpayday \
+            | sed -n 's/.*SHA1: //p' | head -n 1 | tr -d ' ')
+
+          EXPECTED_SHA1="33:A3:BA:91:2F:5B:87:7D:36:7B:66:AB:17:3C:91:46:6F:75:27:2E"
+
+          echo "Upload key SHA1: $ACTUAL_SHA1"
+
+          if [ "$ACTUAL_SHA1" != "$EXPECTED_SHA1" ]; then
+            echo "STOP - wrong upload key"
+            exit 1
+          fi
+
+          echo "KEYSTORE_PATH=$KEYSTORE" >> "$GITHUB_ENV"
 
       - name: Sign AAB
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          AAB_PATH=$(find TillPayday_Android_v0_2/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
+          AAB_PATH=$(find TillPayday_Android_v0_2/app/build/outputs/bundle/release \
+            -name "*.aab" | head -n 1)
 
           cp "$AAB_PATH" TillPayday-SIGNED.aab
 
@@ -57,7 +101,7 @@ jobs:
             -verbose \
             -sigalg SHA256withRSA \
             -digestalg SHA-256 \
-            -keystore tillpayday-release.jks \
+            -keystore "$KEYSTORE_PATH" \
             -storepass "$KEYSTORE_PASSWORD" \
             -keypass "$KEYSTORE_PASSWORD" \
             TillPayday-SIGNED.aab \
